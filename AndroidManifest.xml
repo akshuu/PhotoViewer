@@ -29,7 +29,7 @@
         <activity
             android:name=".ImageViewActivity"
             android:configChanges="orientation|keyboardHidden"
-            android:label="@string/title_activity_image_view" >
+            android:label="@string/title_activity_main" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -39,11 +39,10 @@
         <activity
             android:name=".ImageDetailsActivity"
             android:configChanges="orientation|keyboardHidden"
-            android:label="@string/title_activity_image_details" >
+            android:label="@string/title_activity_main" >
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.VIEW" />
+               <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
     </application>
