@@ -3,6 +3,8 @@ package com.test.weddingsnap;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.content.res.Configuration;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -21,17 +23,32 @@ public class ImageDetailsActivity extends Activity {
         Bundle exifBundle = getIntent().getBundleExtra("exifInfo");
         ArrayList<Exif> listExif = (ArrayList<Exif>) exifBundle.get("exifInfo");
         
+        TextView txtDetails = (TextView) findViewById(R.id.textView1);
+        txtDetails.setTypeface(null,Typeface.BOLD);
+        txtDetails.setTextSize(20);
+        	
+        TextView txtTakenDate = (TextView) findViewById(R.id.txtTaken);
+        txtTakenDate.setTypeface(null,Typeface.BOLD);
+        TextView txtAperture = (TextView) findViewById(R.id.txtAperture);
+        txtAperture.setTypeface(null,Typeface.BOLD);
+        TextView txtFocal = (TextView) findViewById(R.id.txtFocal);
+        txtFocal.setTypeface(null,Typeface.BOLD);
+        TextView txtCamera = (TextView) findViewById(R.id.txtCamera);
+        txtCamera.setTypeface(null,Typeface.BOLD);
+        TextView txtExposure = (TextView) findViewById(R.id.txtExposure);
+        txtExposure.setTypeface(null,Typeface.BOLD);
+        
         updateUI(listExif);
     }
 
     private void updateUI(ArrayList<Exif> listExif) {
 
     	for(Exif exif:listExif){
-			Log.i(Constants.LOG_TAG,"Label = " + exif.getLabel());
-			Log.i(Constants.LOG_TAG,"Raw = " + exif.getRaw());
-			Log.i(Constants.LOG_TAG,"Tag = " + exif.getTag());
-			Log.i(Constants.LOG_TAG,"Clean = " + exif.getClean());
-			Log.i(Constants.LOG_TAG,"Tag Space = " + exif.getTagspace());
+//			Log.i(Constants.LOG_TAG,"Label = " + exif.getLabel());
+//			Log.i(Constants.LOG_TAG,"Raw = " + exif.getRaw());
+//			Log.i(Constants.LOG_TAG,"Tag = " + exif.getTag());
+//			Log.i(Constants.LOG_TAG,"Clean = " + exif.getClean());
+//			Log.i(Constants.LOG_TAG,"Tag Space = " + exif.getTagspace());
 			
 			if("Flash".equals(exif.getTag())){
 				TextView txtFlashTxt = (TextView) findViewById(R.id.txtFlashTxt);
@@ -58,10 +75,11 @@ public class ImageDetailsActivity extends Activity {
 			
 		}
 	}
-
-	@Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_image_details, menu);
-        return true;
+    
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+    	super.onConfigurationChanged(newConfig);
     }
+    
+
 }

@@ -17,6 +17,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.http.AndroidHttpClient;
@@ -135,7 +136,8 @@ public class Helper {
 				destFile.delete();
 			}
 			fos = new FileOutputStream(destFile);
-			bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+			boolean status = bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+			Log.i(Constants.LOG_TAG,"image saved to disk ? " + status);
 		} catch (FileNotFoundException fnfe) {
 			return false;
 		} finally {
@@ -149,35 +151,50 @@ public class Helper {
 		return true;
 	}
     
+    /**
+	 * @param filename
+	 * @return
+	 */
+	public static String getAbsoluteFileLocation(String filename,Context context,boolean isThumbNail) {
+		File dir = context.getExternalFilesDir("");
+		if(dir == null){
+			Log.i(Constants.LOG_TAG,"No external Storage. Saving image to:  " + context.getFilesDir().getAbsolutePath());
+			dir = context.getFilesDir();
+		}
+		if(isThumbNail){		// For thumbnails, save them to a different location
+			File f  = new File(dir + "/thumbnails");
+			f.mkdirs();
+			filename = f + filename;
+		}else{
+			filename = dir + filename;
+		}
+		Log.i(Constants.LOG_TAG,"Saving image as:  " + filename);
+		return filename;
+	}
 
 	/*
 	 * Read the cached thumbnails/images from the disk
 	 */
-	public static Bitmap readFileFromDisk(Photo photo){
+	public static Bitmap readFileFromDisk(Photo photo, Context mContext,boolean isThumbNail){
 			String url = photo.getThumbnailUrl();
 			String filename = url.substring(url.lastIndexOf('/')+1);
-			File file = new File(filename);
+			filename = getAbsoluteFileLocation(filename, mContext,isThumbNail);
 			FileInputStream fis = null;
 			Bitmap img = null;
-			if(file.exists()){
-				
+			{
+				Log.i(Constants.LOG_TAG,"Reading file:  " + filename);
 				try {
-					fis = new FileInputStream(file);
+					fis = new FileInputStream(filename);
 					img = BitmapFactory.decodeStream(fis);
 					return img;
 				} catch (FileNotFoundException e) {
-					e.printStackTrace();
 				}finally{
 					if(fis!=null){
 						try {
 							fis.close();
 						} catch (IOException e) {
-							e.printStackTrace();
 						}
 						fis = null;
-					}
-					if(img !=null){
-						img.recycle();
 					}
 				}
 				

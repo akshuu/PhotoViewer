@@ -16,7 +16,10 @@ public class PhotoSearchTask extends AsyncTask<Place, Integer, PhotoList> {
  
 	@Override
 	protected void onPostExecute(PhotoList result) {
-		super.onPostExecute(result);
+		if (this.isCancelled()) {
+			result = null;
+			return;
+		}
 	}
 	
 	@Override

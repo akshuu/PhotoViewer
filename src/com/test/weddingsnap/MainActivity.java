@@ -42,11 +42,11 @@ public class MainActivity extends Activity {
 		uiHandler.post(getLocation);
     }
     
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_main, menu);
-        return true;
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main, menu);
+//        return true;
+//    }
     
     @Override
     protected void onResume() {
@@ -60,6 +60,10 @@ public class MainActivity extends Activity {
     	super.onPause();
     }
 
+    @Override
+    protected void onStop() {
+    	super.onStop();
+    }
 	public void updateGrid(PhotoList photoList,Map<Photo,Bitmap> photoMap) {
 		 final ImageAdapter adapter = new ImageAdapter(this,photoList,photoMap);
        	 gridview.setAdapter(adapter);

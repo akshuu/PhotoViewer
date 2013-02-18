@@ -1,11 +1,10 @@
 <resources>
 
     <string name="app_name">WeddingSnap</string>
-    <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
-    <string name="title_activity_main">PhotoViewer</string>
-    <string name="title_activity_image_view">ImageView</string>
-    <string name="title_activity_image_details">ImageDetailsActivity</string>
+    <string name="title_activity_main"></string>
+    <string name="title_activity_image_view"></string>
+    <string name="title_activity_image_details"></string>
 	<string name="details">Details</string>
 	<string name="camera">Camera:</string>
 	<string name="dateTaken">Taken on: </string>

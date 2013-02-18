@@ -54,4 +54,12 @@ public class PlaceInfoTask extends AsyncTask<Address, Void,PlacesList> {
     	return lists;
 	}
 	
+	@Override
+	protected void onPostExecute(PlacesList result) {
+		if (this.isCancelled()) {
+			result = null;
+			return;
+		}
+	}
+	
 }

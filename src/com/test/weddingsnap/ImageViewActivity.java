@@ -35,6 +35,9 @@ public class ImageViewActivity extends Activity implements OnClickListener {
 	Photo photo = null;
 	Collection<Exif> exifInfo = null;
 	Bitmap img ; 
+	ImageDownloadTask imageDownloadTask;
+	PhotoInfoTask photoInfoTask ;
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,12 +55,12 @@ public class ImageViewActivity extends Activity implements OnClickListener {
         photo = (Photo) photoBundle.get("photo");
        
         if(img == null){
-	        ImageDownloadTask task = new ImageDownloadTask();
+	        imageDownloadTask = new ImageDownloadTask();
 	        Log.i(Constants.LOG_TAG, "Downloading the image : " + photo.getMediumUrl());
-	        task.execute(photo.getMediumUrl());
+	        imageDownloadTask.execute(photo.getMediumUrl());
 	        
 	        try {
-				img = task.get(20, TimeUnit.SECONDS);
+				img = imageDownloadTask.get(20, TimeUnit.SECONDS);
 			}catch(Exception ex){
 			}
 	    }
@@ -72,11 +75,15 @@ public class ImageViewActivity extends Activity implements OnClickListener {
     }
     
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_image_view, menu);
-        return true;
+    protected void onStop() {
+    	if(imageDownloadTask != null)
+    		imageDownloadTask.cancel(true);
+    	if(photoInfoTask != null)
+    		photoInfoTask.cancel(true);
+    	
+    	super.onStop();
     }
-
+    
 	@Override
 	public void onClick(View v) {
 		if(v.getId() == R.id.btnDownload){
@@ -86,13 +93,7 @@ public class ImageViewActivity extends Activity implements OnClickListener {
 			String url = photo.getMediumUrl();
 			String filename = url.substring(url.lastIndexOf('/')+1);
 			//Store the image in app folder
-			File dir = getExternalFilesDir("");
-			if(dir == null){
-				Log.i(Constants.LOG_TAG,"No external Storage. Saving image to:  " + getFilesDir().getAbsolutePath());
-				dir = getFilesDir();
-			}
-			Log.i(Constants.LOG_TAG,"Saving image to:  " + dir);
-			filename = dir + filename;
+			filename = Helper.getAbsoluteFileLocation(filename,this,false);
 			boolean status = Helper.saveImageToDisk(filename,img);
 			if(status)
 				Toast.makeText(this, "Image saved successfully", Toast.LENGTH_SHORT).show();
@@ -104,10 +105,10 @@ public class ImageViewActivity extends Activity implements OnClickListener {
 				return;
 
 			if(exifInfo == null){		// Cache the values
-				PhotoInfoTask photoInfo = new PhotoInfoTask();
-				photoInfo.execute(photo.getId(),photo.getSecret());
+				photoInfoTask = new PhotoInfoTask();
+				photoInfoTask.execute(photo.getId(),photo.getSecret());
 				try {
-					exifInfo = photoInfo.get();
+					exifInfo = photoInfoTask.get();
 					
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -125,4 +126,6 @@ public class ImageViewActivity extends Activity implements OnClickListener {
 		}
 		
 	}
+
+	
 }

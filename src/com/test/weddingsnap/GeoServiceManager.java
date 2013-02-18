@@ -47,10 +47,12 @@ public class GeoServiceManager {
 	private Address mCurrentAddress = null;
 	private Location mNotYetGeoDecodedLocation = null;
 	private Activity mActivity;
+	private Context mContext;
 	
 	public GeoServiceManager(Context context,Activity mAct) {
 		mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		mGeoCoder = new Geocoder(context);
+		this.mContext = context;
 		this.mActivity = mAct;
 		
 		try {
@@ -105,15 +107,21 @@ public class GeoServiceManager {
 	public void updateGridView(){
 		PlacesList placeList = null;
 		if(mCurrentAddress!= null){
+			PlaceInfoTask placeInfoTask = null;
 			try {
 				Log.i(Constants.LOG_TAG, "Current Latitute = " + mCurrentAddress.getLatitude() + " , longitude = " + mCurrentAddress.getLongitude());
 //				place = Helper.getInstance().getFlickrPlaceId(mCurrentAddress);
-				PlaceInfoTask placeInfo = new PlaceInfoTask();
-				placeInfo.execute(mCurrentAddress);
-				placeList = placeInfo.get();
+				placeInfoTask = new PlaceInfoTask();
+				placeInfoTask.execute(mCurrentAddress);
+				placeList = placeInfoTask.get();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return ;
+			}finally{
+				if(placeInfoTask != null){
+					placeInfoTask.cancel(true);
+					placeInfoTask = null;
+				}
 			}
 			
 			
@@ -132,6 +140,11 @@ public class GeoServiceManager {
 						photoList = publicPhotos.get();
 					} catch (Exception e) {
 						e.printStackTrace();
+					}finally{
+						if(publicPhotos != null){
+							publicPhotos.cancel(true);
+							publicPhotos = null;
+						}
 					}
 					
 					if(photoList != null){
@@ -139,29 +152,30 @@ public class GeoServiceManager {
 						
 						Log.i(Constants.LOG_TAG, "Total list of photos with public images :" + photoList.size());
 						List<String> failedURL = new LinkedList<String>();
-						List<Bitmap> thumbNailImgs = new LinkedList<Bitmap>();
 						Map<Photo,Bitmap> photoMap = new HashMap<Photo, Bitmap>();
 						
 						for(Photo photo : photoList){
-							Bitmap img = Helper.readFileFromDisk(photo);
+							Bitmap img = Helper.readFileFromDisk(photo,mContext,true);
 							if(img == null){
 								String url = photo.getThumbnailUrl();
 								Log.i(Constants.LOG_TAG, "Thumbnail URL = " + url);
+								ImageDownloadTask imageDownloadTask = new ImageDownloadTask();
 								try {
-									ImageDownloadTask imageDownload = new ImageDownloadTask();
-									Log.i(Constants.LOG_TAG, "Downloading from URL = " + url);
-									imageDownload.execute(url);
-									img = imageDownload.get(10, TimeUnit.SECONDS);
+									imageDownloadTask.execute(url);
+									img = imageDownloadTask.get(20, TimeUnit.SECONDS);
 									String filename = url.substring(url.lastIndexOf('/')+1);
+									filename = Helper.getAbsoluteFileLocation(filename, mContext,true);
 									Helper.saveImageToDisk(filename,img);
-									thumbNailImgs.add(img);
 								} catch (InterruptedException e) {
 									e.printStackTrace();
 								} catch (ExecutionException e) {
 									e.printStackTrace();
 								} catch (TimeoutException e) {
 									Log.i(Constants.LOG_TAG,"Image download didn't complete in time");
-									failedURL.add(url);
+									failedURL.add(url);			// Handle failed URLs
+								}finally{
+									imageDownloadTask.cancel(true);
+									imageDownloadTask = null;
 								}
 							}
 							photoMap.put(photo, img);
