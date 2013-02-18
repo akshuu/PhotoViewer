@@ -164,7 +164,7 @@ public class Helper {
 		if(isThumbNail){		// For thumbnails, save them to a different location
 			File f  = new File(dir + "/thumbnails");
 			f.mkdirs();
-			filename = f + filename;
+			filename = dir + "/thumbnails/" + filename;
 		}else{
 			filename = dir + filename;
 		}
