@@ -23,6 +23,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.googlecode.flickrjandroid.photos.Photo;
 import com.googlecode.flickrjandroid.photos.PhotoList;
@@ -59,6 +60,8 @@ public class GeoServiceManager {
 			// Register the listener with the Location Manager to receive location updates
 			mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Constants.MIN_TIME_FOR_GEO_UPDATES, 
 													Constants.MIN_DISTANCE_FOR_GEO_UPDATES, mLocationListener);
+			mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Constants.MIN_TIME_FOR_GEO_UPDATES, 
+					Constants.MIN_DISTANCE_FOR_GEO_UPDATES, mLocationListener);
 		}
 		catch(IllegalArgumentException exception) {
 			Log.e(Constants.LOG_TAG, "GeoServiceManager: One of the parameters to requestLocationUpdates is wrong. Caught exception " + exception.getMessage());
@@ -124,14 +127,11 @@ public class GeoServiceManager {
 				}
 			}
 			
-			
-			Log.i(Constants.LOG_TAG, "cities with public images :" + placeList);
-			
 			if(placeList != null){
 //				Log.i(Constants.LOG_TAG, "Current placeId  = " + placeList.getPlaceId() + " , WOE = " + placeList.getWoeId());
 				Log.i(Constants.LOG_TAG, "Total list of cities with public images :" + placeList.size());
 				for(int i=0;i<placeList.size();i++){
-					Log.i(Constants.LOG_TAG,"City = " + ((Place)placeList.get(i)).getName());
+					Log.d(Constants.LOG_TAG,"City = " + ((Place)placeList.get(i)).getName());
 				
 					PhotoSearchTask publicPhotos = new PhotoSearchTask();
 					publicPhotos.execute((Place)placeList.get(i));
@@ -207,7 +207,9 @@ public class GeoServiceManager {
     	}
 
     	public void onProviderDisabled(String provider) {
-    		Log.i(Constants.LOG_TAG, "GeoServiceManager: Provider had disabled location updates!");
+    		Log.i(Constants.LOG_TAG, "GeoServiceManager: Provider had disabled location updates! " + provider);
+    		// Fix this ,as this gets call even if one of the provide is disabled
+    		Toast.makeText(mContext, "Please enable Location services to use this App", Toast.LENGTH_LONG).show();
     	}
     };
 }
