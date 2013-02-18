@@ -1,0 +1,18 @@
+<resources>
+
+    <string name="app_name">WeddingSnap</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">PhotoViewer</string>
+    <string name="title_activity_image_view">ImageView</string>
+    <string name="title_activity_image_details">ImageDetailsActivity</string>
+	<string name="details">Details</string>
+	<string name="camera">Camera:</string>
+	<string name="dateTaken">Taken on: </string>
+	<string name="exposure">Exposure:</string>
+	<string name="focal">Focal Length:</string>
+	<string name="iso">ISO Speed:</string>
+	<string name="flash">Flash:</string>
+	<string name="aperture">Aperture:</string>
+	<string name="notavailable"> - NA -</string>
+</resources>
