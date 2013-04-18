@@ -14,4 +14,8 @@
 	<string name="flash">Flash:</string>
 	<string name="aperture">Aperture:</string>
 	<string name="notavailable"> - NA -</string>
+	<string name="please_wait">Please wait</string>
+	<string name="no_connection">No Data connection available. Please turn on data services.</string>
+	<string name="unknown_error">An unknown error occured. Please try again</string>
+	<string name="fetching_data">Please wait, fetching data...</string>
 </resources>
