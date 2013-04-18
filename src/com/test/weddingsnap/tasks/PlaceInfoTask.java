@@ -16,17 +16,17 @@ import com.test.weddingsnap.util.Helper;
  * @author akshatj
  *
  */
-public class PlaceInfoTask extends AsyncTask<Address, Void,PlacesList> {
+public class PlaceInfoTask extends AsyncTask<Double, Void,PlacesList> {
 
 	@Override
-	protected PlacesList doInBackground(Address... params) {
+	protected PlacesList doInBackground(Double... params) {
 		if(params == null)
 			return null;
 		
 		PlacesList lists = null;
     	try {
     		// Making the accuracy to City, as it might fetch more results.
-			lists = Helper.getInstance().getPlacesInterface().findByLatLon(params[0].getLatitude(), params[0].getLongitude(), Constants.ACCURACY);
+			lists = Helper.getInstance().getPlacesInterface().findByLatLon(params[0], params[1], Constants.ACCURACY);
 		} catch (FlickrException e) {
 			e.printStackTrace();
 			Log.d(Constants.LOG_TAG,"Unable to get place information : Error Code = " + e.getErrorCode() + ", message = " + e.getMessage());

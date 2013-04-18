@@ -1,19 +1,18 @@
 package com.test.weddingsnap;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -30,14 +29,15 @@ import com.test.weddingsnap.util.Helper;
 
 public class ImageViewActivity extends Activity implements OnClickListener {
 
-	Button btnDownload, btnInfo;
-	ImageView imgView = null;
-	Photo photo = null;
-	Collection<Exif> exifInfo = null;
-	Bitmap img ; 
-	ImageDownloadTask imageDownloadTask;
-	PhotoInfoTask photoInfoTask ;
-	
+	private Button btnDownload, btnInfo;
+	private ImageView imgView = null;
+	private Photo photo = null;
+	private Collection<Exif> exifInfo = null;
+	private Bitmap img ; 
+	private ImageDownloadTask imageDownloadTask;
+	private PhotoInfoTask photoInfoTask ;
+	private ProgressDialog progress ;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,31 +49,86 @@ public class ImageViewActivity extends Activity implements OnClickListener {
         btnDownload.setOnClickListener(this);
         btnInfo.setOnClickListener(this);
         
+        progress = new ProgressDialog(this);
+        progress.setTitle(getString(R.string.please_wait));
+        progress.setMessage(getString(R.string.fetching_data));
+        
+        progress.show();
+        progress.setCancelable(true);		// Allow it to be cancelled incase it blocks due to network
+
+
         imgView = (ImageView)findViewById(R.id.imageView);
         ((RelativeLayout)imgView.getParent()).setBackgroundColor(Color.BLACK);
         Bundle photoBundle = getIntent().getExtras();
         photo = (Photo) photoBundle.get("photo");
        
-        if(img == null){
-	        imageDownloadTask = new ImageDownloadTask();
-	        Log.i(Constants.LOG_TAG, "Downloading the image : " + photo.getMediumUrl());
-	        imageDownloadTask.execute(photo.getMediumUrl());
-	        
-	        try {
-				img = imageDownloadTask.get(20, TimeUnit.SECONDS);
-			}catch(Exception ex){
-			}
+        if(savedInstanceState == null){
+	        if(img == null){
+		        imageDownloadTask = new ImageDownloadTask();
+		        Log.i(Constants.LOG_TAG, "Downloading the image : " + photo.getMediumUrl());
+		        imageDownloadTask.execute(photo.getMediumUrl());
+		        new Thread(){
+					public void run() {
+				        try {
+				        	// if image not fetched in 20 sec, timeout
+							img = imageDownloadTask.get(20, TimeUnit.SECONDS);
+						}catch(Exception ex){
+							img = null;
+						}
+				        Log.i(Constants.LOG_TAG, "Updating the imageview");
+				        showImage();
+					}
+	
+		        }.start();
+		    }else{
+		        Log.i(Constants.LOG_TAG, "Updating the imageview from cache");
+		        showImage();
+		    }
+        }
+        else{
+        	Log.i(Constants.LOG_TAG, "Updating the imageview from cache...maybe on rotation");
+        	img = savedInstanceState.getParcelable("bitmap");
+        	showImage();
 	    }
-        
-        Log.i(Constants.LOG_TAG, "Updating the imageview");
-        imgView.setImageBitmap(img);
     }
 
+    /**
+	 * 
+	 */
+	void showImage() {
+		runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				progress.dismiss();
+				if(img != null)
+					imgView.setImageBitmap(img);
+				else
+					Toast.makeText(getApplicationContext(), "Image cannot be downloaded due to some problem",Toast.LENGTH_SHORT).show();
+			}
+		});
+	};
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
     	super.onConfigurationChanged(newConfig);
     }
     
+    
+    @Override
+    protected void onPause() {
+    	super.onPause();
+    }
+    
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    	img = savedInstanceState.getParcelable("bitmap");
+    	super.onRestoreInstanceState(savedInstanceState);
+    }
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+    	outState.putParcelable("bitmap", img);
+    	super.onSaveInstanceState(outState);
+    }
     @Override
     protected void onStop() {
     	if(imageDownloadTask != null)
@@ -85,7 +140,7 @@ public class ImageViewActivity extends Activity implements OnClickListener {
     }
     
 	@Override
-	public void onClick(View v) {
+	public void onClick(final View v) {
 		if(v.getId() == R.id.btnDownload){
 			Log.i(Constants.LOG_TAG,"Downloading file");
 			if(photo == null)
@@ -107,24 +162,52 @@ public class ImageViewActivity extends Activity implements OnClickListener {
 			if(exifInfo == null){		// Cache the values
 				photoInfoTask = new PhotoInfoTask();
 				photoInfoTask.execute(photo.getId(),photo.getSecret());
-				try {
-					exifInfo = photoInfoTask.get();
+				new Thread(){
+					public void run() {
+
+					try {
+						exifInfo = photoInfoTask.get();
+						
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} catch (ExecutionException e) {
+						e.printStackTrace();
+					}
+					if(exifInfo == null){
+
+						 runOnUiThread(new Runnable() {
+								
+								@Override
+								public void run() {
+									Toast.makeText(getApplicationContext(), "Cannot fetch information about the image",Toast.LENGTH_SHORT).show();
+								}
+							});
+						return;
+					}
+					startImageDetailsActivity();
 					
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					e.printStackTrace();
-				}
+				};
+			}.start();
+			}else{
+				startImageDetailsActivity();
 			}
-				ArrayList<Exif> listExif = new ArrayList<Exif>(exifInfo);
-				Intent imageInfoIntent = new Intent(this,ImageDetailsActivity.class);
-				
-				Bundle bundle = new Bundle();
-				bundle.putSerializable("exifInfo", listExif);
-				imageInfoIntent.putExtra("exifInfo", bundle);
-                startActivity(imageInfoIntent);
+
 		}
 		
+	}
+
+	/**
+	 * @param exifInfo 
+	 * 
+	 */
+	void startImageDetailsActivity() {
+		ArrayList<Exif> listExif = new ArrayList<Exif>(exifInfo);
+		Intent imageInfoIntent = new Intent(getApplicationContext(),ImageDetailsActivity.class);
+		
+		Bundle bundle = new Bundle();
+		bundle.putSerializable("exifInfo", listExif);
+		imageInfoIntent.putExtra("exifInfo", bundle);
+		startActivity(imageInfoIntent);
 	}
 
 	
