@@ -220,34 +220,44 @@ public class MainActivity extends Activity {
 		if(photoList != null){
 		
 		Log.i(Constants.LOG_TAG, "Total list of photos with public images :" + photoList.size());
-		List<String> failedURL = new LinkedList<String>();
+		
 		final Map<Photo,Bitmap> photoMap = new HashMap<Photo, Bitmap>();
 		
-		for(Photo photo : photoList){
+		for(final Photo photo : photoList){
 			Bitmap img = Helper.readFileFromDisk(photo,this,true);
 			if(img == null){
-				String url = photo.getThumbnailUrl();
+				final String url = photo.getThumbnailUrl();
 				Log.i(Constants.LOG_TAG, "Thumbnail URL = " + url);
-				ImageDownloadTask imageDownloadTask = new ImageDownloadTask();
-				try {
-					imageDownloadTask.execute(url);
-					img = imageDownloadTask.get(20, TimeUnit.SECONDS);
-					String filename = url.substring(url.lastIndexOf('/')+1);
-					filename = Helper.getAbsoluteFileLocation(filename, this,true);
-					Helper.saveImageToDisk(filename,img);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					e.printStackTrace();
-				} catch (TimeoutException e) {
-					Log.i(Constants.LOG_TAG,"Image download didn't complete in time");
-					failedURL.add(url);			// Handle failed URLs
-				}finally{
-					imageDownloadTask.cancel(true);
-					imageDownloadTask = null;
-				}
+				final ImageDownloadTask imageDownloadTask = new ImageDownloadTask();
+				imageDownloadTask.execute(url);
+					new Thread(){
+						public void run() {
+							List<String> failedURL = new LinkedList<String>();
+							try {
+					
+								Bitmap img2 = imageDownloadTask.get(20, TimeUnit.SECONDS);
+								String filename = url.substring(url.lastIndexOf('/')+1);
+								filename = Helper.getAbsoluteFileLocation(filename, getApplicationContext(),true);
+								Helper.saveImageToDisk(filename,img2);
+								photoMap.put(photo, img2);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							} catch (ExecutionException e) {
+								e.printStackTrace();
+							} catch (TimeoutException e) {
+								Log.i(Constants.LOG_TAG,"Image download didn't complete in time");
+								failedURL.add(url);			// Handle failed URLs
+							}finally{
+								imageDownloadTask.cancel(true);
+							}
+							
+							
+						}
+					}.start();
+			}else{
+				photoMap.put(photo,img);
 			}
-			photoMap.put(photo, img);
+			
 		}
 		runOnUiThread(new Runnable() {
 			
