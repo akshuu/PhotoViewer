@@ -69,22 +69,23 @@ public class LocationService extends Service {
     		Log.i(Constants.LOG_TAG, "got the location...");
     		
     		Log.i(Constants.LOG_TAG, "Latitude ..." + mAddress.getLatitude() + ", long= " + mAddress.getLongitude());
-    		Bundle extras = mIntent.getExtras();
-    	    if (extras != null) {
-    	      Messenger messenger = (Messenger) extras.get("MESSENGER");
-    	      Message msg = Message.obtain();
-    	      msg.what = MSG_LOCATION;
-    	      Bundle bundle = new Bundle();
-    	      bundle.putDouble("latitude", mAddress.getLatitude());
-    	      bundle.putDouble("longitude", mAddress.getLongitude());
-    	      msg.setData(bundle);
-    	      try {
-    	        messenger.send(msg);
-    	      } catch (android.os.RemoteException e1) {
-    	        Log.w(getClass().getName(), "Exception sending message", e1);
-    	      }
-
-    	    }
+    		if(mIntent != null){
+	    		Bundle extras = mIntent.getExtras();
+	    	    if (extras != null) {
+	    	      Messenger messenger = (Messenger) extras.get("MESSENGER");
+	    	      Message msg = Message.obtain();
+	    	      msg.what = MSG_LOCATION;
+	    	      Bundle bundle = new Bundle();
+	    	      bundle.putDouble("latitude", mAddress.getLatitude());
+	    	      bundle.putDouble("longitude", mAddress.getLongitude());
+	    	      msg.setData(bundle);
+	    	      try {
+	    	        messenger.send(msg);
+	    	      } catch (android.os.RemoteException e1) {
+	    	        Log.w(getClass().getName(), "Exception sending message", e1);
+	    	      }
+	    	    }
+    		}
 	}
     
 	@Override

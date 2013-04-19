@@ -18,4 +18,9 @@
 	<string name="no_connection">No Data connection available. Please turn on data services.</string>
 	<string name="unknown_error">An unknown error occured. Please try again</string>
 	<string name="fetching_data">Please wait, fetching data...</string>
+	<string name="menu_refresh">Refresh</string>
+	<string name="no_image">Image cannot be downloaded due to some problem</string>
+	<string name="image_saved">Image saved successfully</string>
+	<string name="image_not_saved">Image was not saved.Please try again</string>
+	<string name="no_image_info">Cannot fetch information about the image</string>
 </resources>

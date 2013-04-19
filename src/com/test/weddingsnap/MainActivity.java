@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -42,7 +43,11 @@ public class MainActivity extends Activity {
 	private GridView gridview;
 	private Intent msgIntent;
 	protected static final int MSG_LOCATION = 100;
+	private static final String KEY_SEARCH_RESULT = "PhotoMap";
+	private static final String KEY_PHOTOLISTS = "PhotoLists";
 	private ProgressDialog progress ;
+	private HashMap<Photo,Bitmap> photoMap;
+	private PhotoList photoLists ;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,39 +64,34 @@ public class MainActivity extends Activity {
     		Toast.makeText(getApplicationContext(), getString(R.string.no_connection),Toast.LENGTH_SHORT).show();
     	}else{
 	   
-	        msgIntent = new Intent(this, LocationService.class);
-	        Messenger messenger = new Messenger(uiHandler);
-	        msgIntent.putExtra("MESSENGER", messenger);
-	        startService(msgIntent);
-	
-	        if(savedInstanceState == null){
-	           
-	//        	pageTokens = new ArrayList<String>(SEARCH_PAGES);
-	//        	pageNumber = 0;
-	//        	searchResults = new HashMap<Integer, Results>();		// Cache results
-	        	
-	        }else{
-	//        	pageTokens = savedInstanceState.getStringArrayList(KEY_PAGE_TOKEN);
-	//        	pageNumber = savedInstanceState.getInt(KEY_PAGE_NUMBER);
-	//        	searchResults = (HashMap<Integer, Results>) savedInstanceState.getSerializable(KEY_SEARCH_RESULT);
-	        }
-	        
 	        progress = new ProgressDialog(this);
 	        progress.setTitle(getString(R.string.please_wait));
 	        progress.setMessage(getString(R.string.fetching_data));
-	        
-	        progress.show();
-	        progress.setCancelable(true);		// Allow it to be cancelled incase it blocks due to network
+     
+	        if(savedInstanceState == null){
+	           
+	        	msgIntent = new Intent(this, LocationService.class);
+	  	        Messenger messenger = new Messenger(uiHandler);
+	  	        msgIntent.putExtra("MESSENGER", messenger);
+	  	        startService(msgIntent);
+	  	
+	  	        progress.show();
+		        progress.setCancelable(true);		// Allow it to be cancelled incase it blocks due to network
 
+	        }else{
+	        	photoMap = (HashMap<Photo,Bitmap>) savedInstanceState.getSerializable(KEY_SEARCH_RESULT);
+	        	photoLists = (PhotoList) savedInstanceState.getSerializable(KEY_PHOTOLISTS);
+	        	updateGrid(photoLists, photoMap);
+	        }
 	    }
         
     }
     
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getMenuInflater().inflate(R.menu.activity_main, menu);
-//        return true;
-//    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_main, menu);
+        return true;
+    }
     
     @Override
     protected void onResume() {
@@ -107,8 +107,10 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-    	if(msgIntent != null)
+    	if(msgIntent != null){
     		stopService(msgIntent);
+    		msgIntent = null;
+    	}
     	super.onDestroy();
     }
     
@@ -117,6 +119,23 @@ public class MainActivity extends Activity {
 		super.onConfigurationChanged(newConfig);
 	}
 
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		outState.putSerializable(KEY_SEARCH_RESULT, photoMap);
+		outState.putSerializable(KEY_PHOTOLISTS, photoLists);
+		
+		super.onSaveInstanceState(outState);
+	}
+	
+	
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		photoMap = (HashMap<Photo, Bitmap>) savedInstanceState.getSerializable(KEY_SEARCH_RESULT);
+		photoLists = (PhotoList) savedInstanceState.getSerializable(KEY_PHOTOLISTS);
+		
+		super.onRestoreInstanceState(savedInstanceState);
+	}
+
+	
     
     Handler uiHandler = new Handler(){
         public void handleMessage(final Message msg) {
@@ -146,13 +165,16 @@ public class MainActivity extends Activity {
         }
     };
     
+    /**
+     * Updates the grid with image thumbnails
+     * @param coords
+     */
 	public void updateGridView(final Double coords[]){
 		
 		if(coords!= null){
 			final PlaceInfoTask placeInfoTask = new PlaceInfoTask();
 			Log.i(Constants.LOG_TAG, "Current Latitute = " + coords[0] + " , longitude = " + coords[1]);
 			placeInfoTask.execute(coords);
-
 
 	   		new Thread() { 
                 public void run() { 
@@ -181,12 +203,10 @@ public class MainActivity extends Activity {
 
 	
 	/**
-	 * 
+	 * Gets photos for the nearby place
 	 */
 	void getPhotosFromPlace(PlacesList placeList) {
 		if(placeList != null){
-//				Log.i(Constants.LOG_TAG, "Current placeId  = " + placeList.getPlaceId() + " , WOE = " + placeList.getWoeId());
-			Log.i(Constants.LOG_TAG, "Total list of cities with public images :" + placeList.size());
 			for(int i=0;i<placeList.size();i++){
 				Log.d(Constants.LOG_TAG,"City = " + ((Place)placeList.get(i)).getName());
 			
@@ -215,13 +235,16 @@ public class MainActivity extends Activity {
 		}
 	}
 	
+
 	
+	// We can move this to a threadpool
 	private void updatePhotos(final PhotoList photoList){
+		photoLists = photoList;
 		if(photoList != null){
 		
 		Log.i(Constants.LOG_TAG, "Total list of photos with public images :" + photoList.size());
 		
-		final Map<Photo,Bitmap> photoMap = new HashMap<Photo, Bitmap>();
+		photoMap = new HashMap<Photo, Bitmap>();
 		
 		for(final Photo photo : photoList){
 			Bitmap img = Helper.readFileFromDisk(photo,this,true);

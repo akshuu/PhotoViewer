@@ -1,5 +1,6 @@
 package com.test.weddingsnap;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
@@ -11,6 +12,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -104,7 +106,7 @@ public class ImageViewActivity extends Activity implements OnClickListener {
 				if(img != null)
 					imgView.setImageBitmap(img);
 				else
-					Toast.makeText(getApplicationContext(), "Image cannot be downloaded due to some problem",Toast.LENGTH_SHORT).show();
+					Toast.makeText(getApplicationContext(), getString(R.string.no_image),Toast.LENGTH_SHORT).show();
 			}
 		});
 	};
@@ -150,10 +152,12 @@ public class ImageViewActivity extends Activity implements OnClickListener {
 			//Store the image in app folder
 			filename = Helper.getAbsoluteFileLocation(filename,this,false);
 			boolean status = Helper.saveImageToDisk(filename,img);
-			if(status)
-				Toast.makeText(this, "Image saved successfully", Toast.LENGTH_SHORT).show();
+			if(status){
+				Toast.makeText(this, getString(R.string.image_saved), Toast.LENGTH_SHORT).show();
+				runMediaScanIntent(filename);
+			}
 			else
-				Toast.makeText(this, "Image was not saved.Please try again", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, getString(R.string.image_not_saved), Toast.LENGTH_LONG).show();
 		}else if(v.getId() == R.id.btnInfo){
 			Log.i(Constants.LOG_TAG,"Getting info about the photo");
 			if(photo == null)
@@ -179,7 +183,7 @@ public class ImageViewActivity extends Activity implements OnClickListener {
 								
 								@Override
 								public void run() {
-									Toast.makeText(getApplicationContext(), "Cannot fetch information about the image",Toast.LENGTH_SHORT).show();
+									Toast.makeText(getApplicationContext(), getString(R.string.no_image_info),Toast.LENGTH_SHORT).show();
 								}
 							});
 						return;
@@ -194,6 +198,25 @@ public class ImageViewActivity extends Activity implements OnClickListener {
 
 		}
 		
+	}
+
+	/**
+	 * Run a media scan so that picture is available in the galery
+	 * @param filename
+	 */
+	private void runMediaScanIntent(String filename) {
+
+		File file = new File(filename);
+		try{
+			Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+			
+		    Uri contentUri = Uri.fromFile(file);
+		    mediaScanIntent.setData(contentUri);
+		    sendBroadcast(mediaScanIntent);
+		}catch (Exception e) {
+			Log.w(Constants.LOG_TAG, "doMediaScan: Exception during media scan" + file);
+		}
+
 	}
 
 	/**

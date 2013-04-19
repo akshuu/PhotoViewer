@@ -22,6 +22,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.http.AndroidHttpClient;
 import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
 
 import com.googlecode.flickrjandroid.Flickr;
@@ -156,17 +157,24 @@ public class Helper {
 	 * @return
 	 */
 	public static String getAbsoluteFileLocation(String filename,Context context,boolean isThumbNail) {
-		File dir = context.getExternalFilesDir("");
-		if(dir == null){
-			Log.i(Constants.LOG_TAG,"No external Storage. Saving image to:  " + context.getFilesDir().getAbsolutePath());
-			dir = context.getFilesDir();
-		}
+		
 		if(isThumbNail){		// For thumbnails, save them to a different location
+			File dir = context.getExternalFilesDir("");
+			
+			if(dir == null){
+				Log.i(Constants.LOG_TAG,"No external Storage. Saving image to:  " + context.getFilesDir().getAbsolutePath());
+				dir = context.getFilesDir();
+			}
 			File f  = new File(dir + "/thumbnails");
 			f.mkdirs();
 			filename = dir + "/thumbnails/" + filename;
 		}else{
-			filename = dir + filename;
+			File picturePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+			if(!picturePath.exists())
+				if(!picturePath.mkdirs()){
+					return null;
+				}
+			filename = picturePath + "/"+ filename;
 		}
 		Log.i(Constants.LOG_TAG,"Saving image as:  " + filename);
 		return filename;
