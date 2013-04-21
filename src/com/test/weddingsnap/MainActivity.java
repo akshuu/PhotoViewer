@@ -85,7 +85,12 @@ public class MainActivity extends Activity implements AbsListView.OnScrollListen
 	        	msgIntent = new Intent(this, LocationService.class);
 	  	        Messenger messenger = new Messenger(uiHandler);
 	  	        msgIntent.putExtra("MESSENGER", messenger);
-	  	        startService(msgIntent);
+	  	        //startService(msgIntent);
+	  	        
+	  	        // for Emulator Testing
+	  	        Double emuCoords[] = { 12.9833d,-77.5833d};
+	  	        updateGridView(emuCoords);
+	  	        // end emulator testing
 	  	        pagenumber = 1;
 	  	        progress.show();
 		        progress.setCancelable(true);		// Allow it to be cancelled incase it blocks due to network
@@ -110,11 +115,18 @@ public class MainActivity extends Activity implements AbsListView.OnScrollListen
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
     	if(item.getItemId() == R.id.menu_refresh){
-    		progress.show();
     		if(coords != null){
+        		progress.show();
 	        	mPhotoList = new PhotoList();
 	        	pagenumber = 1;
     			updateGridView(coords);
+    		}else{
+    			// If we dont have the coordinates, we need to start the location search again
+    			msgIntent = new Intent(this, LocationService.class);
+	  	        Messenger messenger = new Messenger(uiHandler);
+	  	        msgIntent.putExtra("MESSENGER", messenger);
+	  	        startService(msgIntent);
+        		progress.show();
     		}
     		return true;
     	}
@@ -363,6 +375,7 @@ public class MainActivity extends Activity implements AbsListView.OnScrollListen
 	// Updates the grid view with the photo list.
 	public void updateGrid(PhotoList photoList) {
        	
+		
 		if(adapter == null){
 			adapter = new ImageAdapter(this,photoList);
 			gridview.setAdapter(adapter);

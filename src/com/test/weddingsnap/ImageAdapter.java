@@ -9,6 +9,7 @@ import java.util.Map;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -80,7 +81,16 @@ public class ImageAdapter extends BaseAdapter {
         ImageView imageView;
         if (convertView == null) {  // if it's not recycled, initialize some attributes
             imageView = new ImageView(mContext);
-            imageView.setLayoutParams(new GridView.LayoutParams(200, 200));
+            int scale = mContext.getResources().getDisplayMetrics().densityDpi;
+            if(scale == DisplayMetrics.DENSITY_MEDIUM)
+            	imageView.setLayoutParams(new GridView.LayoutParams(170, 170));
+            else if(scale == DisplayMetrics.DENSITY_HIGH)
+            	imageView.setLayoutParams(new GridView.LayoutParams(210, 210));
+            else if(scale == DisplayMetrics.DENSITY_LOW)
+            	imageView.setLayoutParams(new GridView.LayoutParams(100, 100));
+            else 
+            	imageView.setLayoutParams(new GridView.LayoutParams(300, 300));
+            
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         } else {
             imageView = (ImageView) convertView;

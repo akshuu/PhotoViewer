@@ -35,7 +35,7 @@ public class ImageDownloadTask extends AsyncTask<String, Void, Bitmap> {
 	protected void onPreExecute() {
 		progress = new ProgressDialog(mActivity);
         progress.setTitle(mActivity.getString(R.string.please_wait));
-        progress.setMessage(mActivity.getString(R.string.fetching_data));
+        progress.setMessage(mActivity.getString(R.string.fetching_image));
         
         progress.show();
         progress.setCancelable(true);		// Allow it to be cancelled incase it blocks due to network
