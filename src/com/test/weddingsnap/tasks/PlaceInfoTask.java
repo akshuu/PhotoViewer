@@ -3,7 +3,6 @@
  */
 package com.test.weddingsnap.tasks;
 
-import android.location.Address;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -34,23 +33,6 @@ public class PlaceInfoTask extends AsyncTask<Double, Void,PlacesList> {
 			e.printStackTrace();
 		}
     	
-    	/*
-    	Place place = null;
-    	if(lists != null && lists.size() > 0){
-    		place = (Place)lists.get(0);			// Since we are dealing with City level, we get only one place
-
-	    	if(place != null){
-		    	try{
-		    		Log.d(Constants.LOG_TAG,"place information : Place Id = " + place.getPlaceId() + ", WOE = " + place.getWoeId());
-		    		listPublicPhotos = Helper.getInstance().getPlacesInterface().getChildrenWithPhotosPublic("7.MJR8tTVrIO1EgB","2487956");//place.getPlaceId(), place.getWoeId());
-		    	}catch(FlickrException feEx){
-		    		feEx.printStackTrace();
-		    		Log.d(Constants.LOG_TAG,"Unable to get public photos : Error Code = " + feEx.getErrorCode() + ", message = " + feEx.getMessage());
-		    	}catch(Exception e){
-					e.printStackTrace();
-				}
-	    	}
-    	}*/
     	return lists;
 	}
 	

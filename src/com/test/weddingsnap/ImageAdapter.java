@@ -3,17 +3,12 @@
  */
 package com.test.weddingsnap;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
+import java.lang.ref.WeakReference;
 import java.util.Map;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +19,7 @@ import android.widget.ImageView;
 import com.googlecode.flickrjandroid.photos.Photo;
 import com.googlecode.flickrjandroid.photos.PhotoList;
 import com.test.weddingsnap.util.Constants;
+import com.test.weddingsnap.util.Helper;
 
 /**
  * @author akshatj
@@ -31,24 +27,15 @@ import com.test.weddingsnap.util.Constants;
  */
 public class ImageAdapter extends BaseAdapter {
 	 private Context mContext;
-	 private List<Bitmap> imgs = null;
 	 private PhotoList photos = null;
-	 private Map<Photo,Bitmap> photoMap;
 	 
 	 public ImageAdapter(Context c) {
 		 mContext = c;
 	 }
 	 
-	 public ImageAdapter(Context c,PhotoList photoList,List<Bitmap> imgs) {
+	 public ImageAdapter(Context c,PhotoList photoList) {
 		 mContext = c;
 		 this.photos = photoList;
-		 this.imgs = imgs;
-	 }
-	 
-	 public ImageAdapter(Context c,PhotoList photoList,Map<Photo,Bitmap> photo) {
-		 mContext = c;
-		 this.photos = photoList;
-		 this.photoMap = photo;
 	 }
 	 
 	/* (non-Javadoc)
@@ -69,7 +56,8 @@ public class ImageAdapter extends BaseAdapter {
 	@Override
 	public Object getItem(int position) {
 		Photo tPhoto = photos.get(position);
-		return photoMap.get(tPhoto);
+		return tPhoto;
+		
 	}
 
 	/* (non-Javadoc)
@@ -79,6 +67,10 @@ public class ImageAdapter extends BaseAdapter {
 	public long getItemId(int position) {
 		return 0;
 	}
+	
+	public void setPhotoList(PhotoList photoList){
+		this.photos = photoList;
+	}
 
 	/* (non-Javadoc)
 	 * @see android.widget.Adapter#getView(int, android.view.View, android.view.ViewGroup)
@@ -87,25 +79,18 @@ public class ImageAdapter extends BaseAdapter {
 	public View getView(int position, View convertView, ViewGroup parent) {
         ImageView imageView;
         if (convertView == null) {  // if it's not recycled, initialize some attributes
-        	Log.i(Constants.LOG_TAG, "New imageview created");
             imageView = new ImageView(mContext);
             imageView.setLayoutParams(new GridView.LayoutParams(200, 200));
-            
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-//            imageView.setPadding(4,4,4,4);
         } else {
-        	Log.i(Constants.LOG_TAG, "reusing old imageview");
             imageView = (ImageView) convertView;
         }
         
-        for(Photo photo:photos){
-        	// Use cached images
-        	//Bitmap img = Helper.readFileFromDisk(photo);
-        	//if(img == null)
-        	Bitmap img = (Bitmap)getItem(position);
-        	
-        	imageView.setImageBitmap(img);
-        }
+    	// Use cached images
+        Bitmap img = null;
+		Photo photo = photos.get(position);
+		img = Helper.readFileFromDisk(photo.getThumbnailUrl(),mContext,true);
+    	imageView.setImageBitmap(img);
         return imageView;
 	}
 	

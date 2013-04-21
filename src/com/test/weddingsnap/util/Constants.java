@@ -14,6 +14,6 @@ public class Constants {
 	public static final int MIN_TIME_FOR_GEO_UPDATES = 15*60*1000; //Specified in milliseconds
 	public static final String LOG_TAG = "WeddingSnap"; 
 	public static final int ACCURACY = Flickr.ACCURACY_STREET;
-	public static final int IMAGES_PER_PAGE = 25;
+	public static final int IMAGES_PER_PAGE = 24;
 	
 }

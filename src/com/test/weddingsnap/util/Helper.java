@@ -17,6 +17,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -24,10 +25,10 @@ import android.net.http.AndroidHttpClient;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.googlecode.flickrjandroid.Flickr;
 import com.googlecode.flickrjandroid.REST;
-import com.googlecode.flickrjandroid.photos.Photo;
 import com.googlecode.flickrjandroid.photos.PhotosInterface;
 import com.googlecode.flickrjandroid.places.PlacesInterface;
 
@@ -138,7 +139,7 @@ public class Helper {
 			}
 			fos = new FileOutputStream(destFile);
 			boolean status = bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-			Log.i(Constants.LOG_TAG,"image saved to disk ? " + status);
+			Log.d(Constants.LOG_TAG,"image saved to disk ? " + status);
 		} catch (FileNotFoundException fnfe) {
 			return false;
 		} finally {
@@ -162,7 +163,7 @@ public class Helper {
 			File dir = context.getExternalFilesDir("");
 			
 			if(dir == null){
-				Log.i(Constants.LOG_TAG,"No external Storage. Saving image to:  " + context.getFilesDir().getAbsolutePath());
+				Log.d(Constants.LOG_TAG,"No external Storage. Saving image to:  " + context.getFilesDir().getAbsolutePath());
 				dir = context.getFilesDir();
 			}
 			File f  = new File(dir + "/thumbnails");
@@ -176,21 +177,20 @@ public class Helper {
 				}
 			filename = picturePath + "/"+ filename;
 		}
-		Log.i(Constants.LOG_TAG,"Saving image as:  " + filename);
+		Log.d(Constants.LOG_TAG,"image path:  " + filename);
 		return filename;
 	}
 
 	/*
 	 * Read the cached thumbnails/images from the disk
 	 */
-	public static Bitmap readFileFromDisk(Photo photo, Context mContext,boolean isThumbNail){
-			String url = photo.getThumbnailUrl();
+	public static Bitmap readFileFromDisk(String url, Context mContext,boolean isThumbNail){
 			String filename = url.substring(url.lastIndexOf('/')+1);
 			filename = getAbsoluteFileLocation(filename, mContext,isThumbNail);
 			FileInputStream fis = null;
 			Bitmap img = null;
 			{
-				Log.i(Constants.LOG_TAG,"Reading file:  " + filename);
+				Log.d(Constants.LOG_TAG,"Reading file:  " + filename);
 				try {
 					fis = new FileInputStream(filename);
 					img = BitmapFactory.decodeStream(fis);
@@ -208,6 +208,16 @@ public class Helper {
 				
 			}
 			return null;
+	}
+
+	public static void showError(final Activity mActivity, final String error) {
+		mActivity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(mActivity.getApplicationContext(), error,Toast.LENGTH_SHORT).show();
+				return;
+			}
+		});		
 	}
 
 }
