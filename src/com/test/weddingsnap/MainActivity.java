@@ -85,11 +85,11 @@ public class MainActivity extends Activity implements AbsListView.OnScrollListen
 	        	msgIntent = new Intent(this, LocationService.class);
 	  	        Messenger messenger = new Messenger(uiHandler);
 	  	        msgIntent.putExtra("MESSENGER", messenger);
-	  	        //startService(msgIntent);
+	  	        startService(msgIntent);
 	  	        
 	  	        // for Emulator Testing
-	  	        Double emuCoords[] = { 12.9833d,-77.5833d};
-	  	        updateGridView(emuCoords);
+//	  	        Double emuCoords[] = { 12.9833d,-77.5833d};
+//	  	        updateGridView(emuCoords);
 	  	        // end emulator testing
 	  	        pagenumber = 1;
 	  	        progress.show();
